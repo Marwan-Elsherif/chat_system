@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :applications, param: :token 
   get "messages/create"
   get "messages/index"
   get "messages/search"
