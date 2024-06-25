@@ -40,4 +40,10 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 end
 
+gem 'redis'
 
+gem 'sidekiq'
+
+gem 'elasticsearch-model'
+
+gem 'elasticsearch-rails'
