@@ -47,3 +47,7 @@ gem 'sidekiq'
 gem 'elasticsearch-model'
 
 gem 'elasticsearch-rails'
+
+gem "searchkick"
+
+gem "redlock"

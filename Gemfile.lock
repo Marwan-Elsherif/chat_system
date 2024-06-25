@@ -205,6 +205,8 @@ GEM
       redis-client (>= 0.22.0)
     redis-client (0.22.2)
       connection_pool
+    redlock (2.0.6)
+      redis-client (>= 0.14.1, < 1.0.0)
     regexp_parser (2.9.2)
     reline (0.5.9)
       io-console (~> 0.5)
@@ -240,6 +242,9 @@ GEM
       rubocop-performance
       rubocop-rails
     ruby-progressbar (1.13.0)
+    searchkick (5.3.1)
+      activemodel (>= 6.1)
+      hashie
     sidekiq (7.2.4)
       concurrent-ruby (< 2)
       connection_pool (>= 2.3.0)
@@ -278,7 +283,9 @@ DEPENDENCIES
   puma (>= 5.0)
   rails (~> 7.2.0.beta2)
   redis
+  redlock
   rubocop-rails-omakase
+  searchkick
   sidekiq
   tzinfo-data
 
