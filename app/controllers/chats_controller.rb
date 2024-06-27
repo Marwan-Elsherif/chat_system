@@ -1,22 +1,12 @@
 class ChatsController < ApplicationController
   rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
-  before_action :find_application_by_token, only: %i[ index show destroy ]
-  before_action :find_chat_by_number, only: %i[ show destroy ]
+  before_action :find_application_by_token
+  before_action :find_chat_by_number, only: [:show, :destroy]
   
   # Retrieves a list of all chats (GET /chats).
   def index
     @chats = @application.chats
     render json: @chats.as_json, status: :ok
-  end
-
-  # Creates a new chat (POST /chats).
-  def create
-    application = Application.find_by(token: params[:application_token])
-    number = application.chats.maximum(:number).to_i + 1
-
-    application.chats.create!(number: number)
-    application.increment!(:chats_count)
-    render json: { message: 'Chat creation in process' }, status: :accepted
   end
 
   # Retrieves a single application by its token (GET /chats/:number).
@@ -28,7 +18,16 @@ class ChatsController < ApplicationController
     end
   end
 
-  # Deletes an application by its token (DELETE /chats/:number).
+  # Creates a new chat (POST /chats).
+  def create
+    number = @application.chats.maximum(:number).to_i + 1
+
+    @application.chats.create!(number: number)
+    @application.increment!(:chats_count)
+    render json: { message: 'Chat creation in process', number: number }, status: :accepted
+  end
+
+  # Deletes a chat by its token (DELETE /chats/:number).
   def destroy
     if @chat
       chat_number = @chat.number
@@ -40,9 +39,6 @@ class ChatsController < ApplicationController
   end
 
   private
-    def chat_params
-      params.require(:chat).permit(:number)
-    end
 
     def find_application_by_token
       @application = Application.find_by(token: params[:application_token])

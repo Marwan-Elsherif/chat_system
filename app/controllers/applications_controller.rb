@@ -32,7 +32,6 @@ class ApplicationsController < ApplicationController
   
     # Updates an existing application by its token (PATCH/PUT /applications/:token).
     def update
-        @application = Application.find_by(token: params[:token])
         if @application
           if @application.update(application_params)
             render json: @application, status: :ok
@@ -57,16 +56,16 @@ class ApplicationsController < ApplicationController
     
     private
     
-    def application_params
-      params.require(:application).permit(:name)
-    end
-  
-    def record_not_found
-      render json: { error: 'Application not found' }, status: :not_found
-    end
+      def application_params
+        params.require(:application).permit(:name)
+      end
+    
+      def record_not_found
+        render json: { error: 'Application not found' }, status: :not_found
+      end
 
-    def find_application_by_token
-        @application = Application.find_by(token: params[:token])
-    end
+      def find_application_by_token
+          @application = Application.find_by(token: params[:token])
+      end
 end
   
