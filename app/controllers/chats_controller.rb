@@ -20,19 +20,28 @@ class ChatsController < ApplicationController
 
   # Creates a new chat (POST /chats).
   def create
-    number = @application.chats.maximum(:number).to_i + 1
-
-    @application.chats.create!(number: number)
-    @application.increment!(:chats_count)
-    render json: { message: 'Chat creation in process', number: number }, status: :accepted
+    chat_number = get_chat_number
+    Rails.logger.info("params: #{params}")
+    Rails.logger.info("params[:token]: #{params[:token]}")
+    Rails.logger.info("params[:application_token]: #{params[:application_token]}")
+    $redis.set("#{params[:application_token]}_#{chat_number}_message_number", 1)
+    token = params[:application_token]
+    CreateChatJob.perform_async(token, chat_number)
+    render json: {number: chat_number, messages_count: 0}, status: :created
   end
 
   # Deletes a chat by its token (DELETE /chats/:number).
-  def destroy
+  def destroy    
     if @chat
-      chat_number = @chat.number
-      @chat.destroy
-      render json: { message: "Chat #{chat_number} deleted successfully" }, status: :ok
+      @chat.with_lock do
+        @chat.destroy!
+      end
+      @application.with_lock do
+        @application.decrement!(:chats_count)
+      end
+      renumber_chats(@application)
+      decrement_chat_number
+      render json: { message: "Chat #{@chat.number} deleted successfully" }, status: :ok
     else
       render json: { error: 'Chat not found' }, status: :not_found
     end
@@ -50,5 +59,27 @@ class ChatsController < ApplicationController
 
     def record_not_found
       render json: { error: 'Chat not found' }, status: :not_found
+    end
+
+    def get_chat_number
+      Rails.logger.info("params[:application_token]: #{params[:application_token]}")
+      $redis_lock.lock("#{params[:application_token]}_chat_number", 5000) do |locked|
+        output = $redis.get("#{params[:application_token]}_chat_number")
+        $redis.set("#{params[:application_token]}_chat_number", output.to_i + 1)
+        return output
+      end
+    end
+
+    def decrement_chat_number
+      $redis_lock.lock("#{params[:application_token]}_chat_number", 5000) do |locked|
+        current_number = $redis.get("#{params[:application_token]}_chat_number").to_i
+        $redis.set("#{params[:application_token]}_chat_number", current_number - 1)
+      end
+    end
+
+    def renumber_chats(application)
+      application.chats.order(:number).each_with_index do |chat, index|
+        chat.update_column(:number, index + 1)
+      end  
     end
 end

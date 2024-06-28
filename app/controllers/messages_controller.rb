@@ -22,22 +22,19 @@ class MessagesController < ApplicationController
 
   # Creates a new message (POST /messages).
   def create
-    number = @chat.messages.maximum(:number).to_i + 1
-
-    @chat.messages.create!(number: number, body: message_params[:body])
-    @chat.increment!(:messages_count)
-
-    render json: { message: 'Message created successfully', number: number }, status: :accepted
+    msg_num = get_msg_number
+    Rails.logger.info("params: #{params}")
+    Rails.logger.info("#{params[:application_token]}_#{params[:chat_number]}_message_number: #{params[:application_token]}_#{params[:chat_number]}_message_number")
+    CreateMessageJob.perform_async(params[:application_token], params[:chat_number], msg_num, params[:body])
+    render json: {number: msg_num, message: params[:message]}, status: :created
   end
 
   # Updates an existing message by its number (PATCH/PUT /messages/:number).
   def update
     if @message
-      if @message.update(message_params)
-        render json: @message, status: :ok
-      else
-        render json: { errors: @message.errors.full_messages }, status: :unprocessable_entity
-      end
+      Rails.logger.info("params: #{params}")
+      UpdateMessageJob.perform_async(params[:application_token], params[:chat_number], params[:number], params[:body])
+      render json: {number: params[:number]}, status: :ok
     else
       render json: { error: 'Message not found' }, status: :not_found
     end
@@ -46,9 +43,14 @@ class MessagesController < ApplicationController
   # Deletes a Message by its number (DELETE /messages/:number).
   def destroy
     if @message
-      @message.destroy
-      @chat.decrement!(:messages_count)
+      @message.with_lock do
+        @message.destroy!
+      end
+      @chat.with_lock do
+        @chat.decrement!(:messages_count)
+      end
       renumber_messages(@chat)
+      decrement_msg_number
       render json: { message: 'Message deleted successfully' }, status: :ok
     else
       render json: { error: 'Message not found' }, status: :not_found
@@ -56,6 +58,9 @@ class MessagesController < ApplicationController
   end
 
   def search
+    Rails.logger.info("params[:message]: #{params[:message]}")
+    @result = Message.search(params[:message])
+    render json: @result, status: :ok
   end
 
   private
@@ -84,5 +89,24 @@ class MessagesController < ApplicationController
       chat.messages.order(:number).each_with_index do |message, index|
         message.update_column(:number, index + 1)
       end  
+    end
+
+    def get_msg_number
+      Rails.logger.info("#{params[:application_token]}_#{params[:chat_number]}_message_number: #{params[:application_token]}_#{params[:chat_number]}_message_number")
+      $redis_lock.lock("#{params[:application_token]}_#{params[:chat_number]}_message_number", 5000) do |locked|
+        output = $redis.get("#{params[:application_token]}_#{params[:chat_number]}_message_number")
+        Rails.logger.info("output: #{output}")
+
+        $redis.set("#{params[:application_token]}_#{params[:chat_number]}_message_number", output.to_i + 1)
+        Rails.logger.info("output.to_i + 1: #{output.to_i + 1}")
+        return output
+      end
+    end
+
+    def decrement_msg_number
+      $redis_lock.lock("#{params[:application_token]}_#{params[:chat_number]}_message_number", 5000) do |locked|
+        current_number = $redis.get("#{params[:application_token]}_#{params[:chat_number]}_message_number").to_i
+        $redis.set("#{params[:application_token]}_#{params[:chat_number]}_message_number", current_number - 1)
+      end
     end
 end
