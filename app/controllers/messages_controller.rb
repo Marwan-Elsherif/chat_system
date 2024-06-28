@@ -22,7 +22,6 @@ class MessagesController < ApplicationController
 
   # Creates a new message (POST /messages).
   def create
-    # chat = Chat.find_by(number: params[:chat_number])
     number = @chat.messages.maximum(:number).to_i + 1
 
     @chat.messages.create!(number: number, body: message_params[:body])

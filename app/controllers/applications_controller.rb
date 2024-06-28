@@ -11,7 +11,6 @@ class ApplicationsController < ApplicationController
     
     # Retrieves a single application by its token (GET /applications/:token).
     def show
-      @application = Application.find_by(token: params[:token])
       if @application
         render json: @application, status: :ok
       else
@@ -21,31 +20,19 @@ class ApplicationsController < ApplicationController
   
     # Creates a new application (POST /applications).
     def create
-        token = SecureRandom.hex(8)
-        @application = Application.new(application_params.merge(token: token))
-        if @application.save
-            render json: { token: @application.token }, status: :created
-        else
-            render json: { errors: @application.errors.full_messages }, status: :unprocessable_entity
-        end
+      token = SecureRandom.uuid
+      CreateAppJob.perform_async(token, application_params[:name])
+      render json: { token: token }, status: :created
     end
   
     # Updates an existing application by its token (PATCH/PUT /applications/:token).
     def update
-        if @application
-          if @application.update(application_params)
-            render json: @application, status: :ok
-          else
-            render json: { errors: @application.errors.full_messages }, status: :unprocessable_entity
-          end
-        else
-          render json: { error: 'Application not found' }, status: :not_found
-        end
+      UpdateAppJob.perform_async(params[:token], params[:name])
+      render json: { token: params[:token] }, status: :created
     end
   
     # Deletes an application by its token (DELETE /applications/:token).
     def destroy
-      @application = Application.find_by(token: params[:token])
       if @application
         @application.destroy
         render json: { message: 'Application deleted successfully' }, status: :ok

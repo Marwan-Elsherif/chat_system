@@ -74,8 +74,7 @@ GEM
     bigdecimal (3.1.8)
     bootsnap (1.18.3)
       msgpack (~> 1.2)
-    brakeman (6.1.2)
-      racc
+    brakeman (5.4.1)
     builder (3.3.0)
     concurrent-ruby (1.3.3)
     connection_pool (2.4.1)
@@ -85,19 +84,20 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     drb (2.2.1)
-    elastic-transport (8.3.2)
-      faraday (< 3)
+    elasticsearch (7.17.11)
+      elasticsearch-api (= 7.17.11)
+      elasticsearch-transport (= 7.17.11)
+    elasticsearch-api (7.17.11)
       multi_json
-    elasticsearch (8.14.0)
-      elastic-transport (~> 8.3)
-      elasticsearch-api (= 8.14.0)
-    elasticsearch-api (8.14.0)
-      multi_json
-    elasticsearch-model (8.0.0)
+    elasticsearch-model (7.2.1)
       activesupport (> 3)
-      elasticsearch (~> 8)
+      elasticsearch (~> 7)
       hashie
-    elasticsearch-rails (8.0.0)
+    elasticsearch-rails (7.2.1)
+    elasticsearch-transport (7.17.11)
+      base64
+      faraday (>= 1, < 3)
+      multi_json
     erubi (1.13.0)
     faraday (2.9.2)
       faraday-net_http (>= 2.0, < 3.2)
@@ -275,18 +275,18 @@ PLATFORMS
 
 DEPENDENCIES
   bootsnap
-  brakeman
+  brakeman (~> 5.0)
   debug
-  elasticsearch-model
-  elasticsearch-rails
+  elasticsearch-model (~> 7.2)
+  elasticsearch-rails (~> 7.2)
   mysql2 (~> 0.5)
   puma (>= 5.0)
   rails (~> 7.2.0.beta2)
-  redis
-  redlock
-  rubocop-rails-omakase
-  searchkick
-  sidekiq
+  redis (~> 5.2)
+  redlock (~> 2.0)
+  rubocop-rails-omakase (~> 1.0)
+  searchkick (~> 5.3)
+  sidekiq (~> 7.2)
   tzinfo-data
 
 BUNDLED WITH
