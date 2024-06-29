@@ -280,6 +280,9 @@ DEPENDENCIES
   elasticsearch-model (~> 7.2)
   elasticsearch-rails (~> 7.2)
   mysql2 (~> 0.5)
+  net-imap
+  net-pop
+  net-protocol
   puma (>= 5.0)
   rails (~> 7.2.0.beta2)
   redis (~> 5.2)
@@ -287,6 +290,7 @@ DEPENDENCIES
   rubocop-rails-omakase (~> 1.0)
   searchkick (~> 5.3)
   sidekiq (~> 7.2)
+  timeout (>= 0.4.0)
   tzinfo-data
 
 BUNDLED WITH
