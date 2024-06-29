@@ -1,4 +1,4 @@
-# Chatting application using Ruby on rails
+# Chat system using Ruby on rails
 
 It allows creating new applications where each application can have multiple chats, and each chat contains multiple messages. 
 
