@@ -54,7 +54,7 @@ end
 
 gem "sidekiq", "~> 7.2"
 
-gem "elasticsearch-model", "~> 7.2"
+gem "elasticsearch-model", "~> 8.0"
 
 gem "elasticsearch-rails", "~> 7.2"
 
