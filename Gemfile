@@ -52,7 +52,7 @@ group :development, :test do
   gem "rubocop-rails-omakase", "~> 1.0", require: false
 end
 
-gem "sidekiq", "~> 7.2"
+gem "sidekiq", "~> 7.3"
 
 gem "elasticsearch-model", "~> 7.2"
 
